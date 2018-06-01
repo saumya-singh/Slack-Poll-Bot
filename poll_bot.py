@@ -29,11 +29,14 @@ def parse_bot_commands(slack_events):
 def parse_direct_mention(message_text):
     print("=====================")
     matches = re.search(BOT_MESSAGE_REGEX, message_text)
-    print(matches.groups())
-    print("=====================")
-    message_list = re.compile("\s+").split(matches.group(2).strip())
-    print(message_list)
-    return (matches.group(1), message_list) if matches else (None, [])
+    try:
+        print(matches.groups())
+        print("=====================")
+        message_list = re.compile("\s+").split(matches.group(2).strip())
+        print(message_list)
+        return (matches.group(1), message_list) if matches else (None, [])
+    except:
+        return (None, [])
 
 
 def handle_command(message_list, channel):
@@ -86,6 +89,22 @@ def handle_command(message_list, channel):
             response = "Not a valid POLL ID"
         attachment_response = None
 
+    elif message_list[0] == "list_options":
+        poll_id = message_list[1]
+        if poll_id not in POLLS:
+            response = "Not a valid POLL ID"
+        else:
+            options_list = POLLS[poll_id]["options"].keys()
+            if options_list:
+                response = "List of options for the poll - {}".format(POLLS[poll_id]["poll_issue"])
+                attachment_resp = []
+                for option in options_list:
+                    attachment_resp.append({"text": option})
+                attachment_response = attachment_resp
+            else:
+                response = "Options are yet to be added"
+                attachment_response = None
+
     elif message_list[0] == "host_poll":
         poll_id = message_list[1]
         if poll_id not in POLLS:
@@ -95,6 +114,15 @@ def handle_command(message_list, channel):
             POLLS[poll_id]["host_var"] = 1
             response = POLLS[poll_id]["poll_issue"]
             attachment_response = make_attachment_response(poll_option_dict)
+
+    elif message_list[0] == "show_result":
+        pass
+
+    elif message_list[0] == "result":
+        pass
+
+
+
 
     slack_client.api_call(
         "chat.postMessage",
@@ -109,6 +137,7 @@ def make_attachment_response(poll_option_dict):
             {
                 "text": "Give your vote by choosing from the given options",
                 "fallback": "You are unable to choose an option",
+                "callback_id": "poll_response",
                 "color": "#3AA3E3",
                 "attachment_type": "default",
                 "actions": []
