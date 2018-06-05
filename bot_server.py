@@ -2,23 +2,29 @@
 from flask import Flask, request, Response
 
 app = Flask(__name__)
+POLLS = {}
 
 
-@app.route('/api/getdata')
-def bank_data():
+@app.route('/create_new_poll', methods=['POST', 'GET'])
+def new_poll():
+    content = request.get_json()
+    print("==========", type(content))
+    POLLS.update(content)
+    return "Your poll has been hosted"
+
+
+@app.route('/result_info', methods=['POST', 'GET'])
+def poll_result():
+    pass
+
+
+
+@app.route('/getdata')
+def get_data_from_slack():
     content = request.get_json()
     query_params = request.args
     print("===============", content)
     print("===============", query_params)
-    
-    # query_dict = query_helper.params_to_dict(query_params)
-    # result = query_helper.get_bank_details(query_dict)
-    # json_result, status_code = result
-    # resp = Response(response=json_result,
-    #                 status=status_code,
-    #                 mimetype="application/json")
-    # print("Sending the final response to the client")
-    # return resp
 
 
 if __name__ == '__main__':
