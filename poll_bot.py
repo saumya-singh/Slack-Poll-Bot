@@ -187,7 +187,8 @@ def handle_command(message_list, channel, user_id):
                     }
                 result_json = requests.post(url, data=payload, headers=headers)
                 print("=========", result_json.text, "==========")
-                calculate_result(result_json.text)
+                response = "POLL RESULTS"
+                attachment_response = calculate_result(json.loads(result_json.text))
 
 
     slack_client.api_call(
@@ -201,11 +202,17 @@ def handle_command(message_list, channel, user_id):
 def calculate_result(updated_polls_dict):
     total_votes = 0
     no_of_voters = {}
+    percentage_of_votes_for_an_option = {}
     no_of_options = len(updated_polls_dict["options"])
-    for option, voters_dict in updated_polls_dict["options"]:
+    for option, voters_dict in updated_polls_dict["options"].items():
         no_of_voters[option] = len(voters_dict)
         total_votes += len(voters_dict)
-
+    attachment_resp = []
+    for option, number in no_of_voters.items():
+        percentage_of_votes_for_an_option[option] = (number/total_votes) * 100
+        text = "{}% votes were given to {}".format(percentage_of_votes_for_an_option[option], option)
+        attachment_resp.append({"text": text})
+    return attachment_resp
 
 
 
